@@ -5,11 +5,16 @@ const app = express();
 
 app.use(express.json());
 
+function logger(req,res,next){
+  console.log(`${req.method} methd came`);
+  next();
+}
+
 function auth(req, res, next) {
   const token=req.headers.token;
   const decodedData=jwt.verify(token,JWT_SECRET);
-  if(decodedData.username){
-    req.username=decodedData.username
+  if(decodedData){
+    req.user=decodedData
     next();
   }else{
     res.json({
@@ -19,7 +24,7 @@ function auth(req, res, next) {
 
 }
 const users = [];
-app.post("/signup", (req, res) => {
+app.post("/signup",logger, (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   const user = users.find((u) => u.username === username);
@@ -36,7 +41,7 @@ app.post("/signup", (req, res) => {
   });
 });
 
-app.post("/signin", (req, res) => {
+app.post("/signin",logger, (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
@@ -60,28 +65,19 @@ app.post("/signin", (req, res) => {
 });
 
 
-app.get("/me",auth,(req,res)=>{
-    const user=req.username;
-    res.send({
-        username:user
-    })
-})
-// app.get("/me", (req, res) => {
-//   const token = req.headers.authorization;
-//   const decodedinfo = jwt.verify(token, JWT_SECRET);
-//   const username = decodedinfo.username;
-//   const user = users.find((u) => u.username == username);
-//   if (user) {
-//     res.json({
-//       username: user.username,
-//       password: user.password,
-//     });
-//   } else {
-//     res.json({
-//       message: "unauthorized",
-//     });
-//   }
-// });
+app.get("/me",logger,auth, (req, res) => {
+  const user=req.user
+  if (user) {
+    res.json({
+      username: user.username,
+      password: user.password,
+    });
+  } else {
+    res.json({
+      message: "unauthorized",
+    });
+  }
+});
 
 app.listen(3000, () => {
   console.log("server running on port 3000");
