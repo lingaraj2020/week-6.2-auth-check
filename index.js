@@ -14,7 +14,7 @@ function auth(req, res, next) {
   const token=req.headers.token;
   const decodedData=jwt.verify(token,JWT_SECRET);
   if(decodedData){
-    req.user=decodedData
+    req.username=decodedData.username
     next();
   }else{
     res.json({
@@ -24,7 +24,7 @@ function auth(req, res, next) {
 
 }
 const users = [];
-app.post("/signup",logger, (req, res) => {
+app.post("/signup",(req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   const user = users.find((u) => u.username === username);
@@ -41,7 +41,7 @@ app.post("/signup",logger, (req, res) => {
   });
 });
 
-app.post("/signin",logger, (req, res) => {
+app.post("/signin", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
@@ -49,7 +49,7 @@ app.post("/signin",logger, (req, res) => {
     (u) => u.username == username && u.password == password
   );
   if (!user) {
-    res.json({
+    res.status(411).json({
       message: "creditionals incorrect",
     });
     return;
@@ -64,13 +64,18 @@ app.post("/signin",logger, (req, res) => {
   });
 });
 
+app.get("/",(req,res)=>{
+  res.sendFile(__dirname+"/public/index.html");
+})
 
-app.get("/me",logger,auth, (req, res) => {
-  const user=req.user
+app.get("/me",auth, (req, res) => {
+  const currentuser=req.username
+  const user=users.find(u=>u.username==currentuser);
+
   if (user) {
     res.json({
       username: user.username,
-      password: user.password,
+      password: user.password
     });
   } else {
     res.json({

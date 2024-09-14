@@ -1,0 +1,66 @@
+<html>
+    <head>
+        <title>Auth website</title>
+    </head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
+    <script>
+        async function signup(){
+            const username=document.getElementById("signup-username").value;
+            const password=document.getElementById("signup-password").value;
+            await axios.post("http://localhost:3000/signup",{
+                username:username,
+                password:password
+            })
+            alert("you are signed up!")
+        }
+
+        async function signin(){
+            const username=document.getElementById("signin-username").value;
+            const password=document.getElementById("signin-password").value;
+            const response=await axios.post("http://localhost:3000/signin",{
+                username:username,
+                password:password
+            })
+
+            localStorage.setItem("token",response.data.token);
+            alert("you are signin!")
+        }
+
+        async function generateinfo(){
+            const response=await  axios.get("http://localhost:3000/me",{
+                headers:{
+                    token:localStorage.getItem("token")
+                }
+            })
+            document.getElementById("user-information").innerHTML="username: "+response.data.username + " password: "+response.data.password
+        }
+        generateinfo();
+
+        async function logout(){
+            localStorage.removeItem("token");
+        }
+    </script>
+    <body>
+        <div>
+            Signup:
+            <input id="signup-username" type="text" name="username" placeholder="username"/>
+            <input id="signup-password" type="password" name="password" placeholder="password"/>
+            <button onclick="signup()">submit</button>
+        </div>
+        <div>
+            Signin:
+            <input id="signin-username" type="text" name="username" placeholder="username"/>
+            <input id="signin-password" type="password" name="password" placeholder="password"/>
+            <button onclick="signin()">submit</button>
+        </div>
+        <br/>
+        <div>
+            User information:
+            <div id="user-information"></div>
+        </div>
+        <br/>
+        <div>
+            <button onclick="logout()">logout</button>
+        </div>
+    </body>
+</html>
